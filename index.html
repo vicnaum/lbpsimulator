@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<!--
+Created using JS Bin in half an hour
+http://jsbin.com
+
+My HTML skills are from 90s - so don't judge :-D
+
+Copyright (c) 2021 by vicnaum (http://jsbin.com/rerabu/4/edit)
+
+Released under the MIT license: http://jsbin.mit-license.org
+-->
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>LBP Simulator - Interactive</title>
+  <style id="jsbin-css">
+    table {
+        border-collapse: collapse;
+    }
+
+    table, th, td {
+        border: 1px solid black;
+    }
+
+    td {
+      padding: 5px;
+    }
+
+    body {
+      font-family: Courier;
+    }
+  </style>
+</head>
+  <body>
+    <h1>LBP Simulator</h1>
+
+    <table>
+      <tr>
+        <td>Initial Token Amount:</td><td><input onChange="reset()" id="initialTokenAmount" value="1775000"></td>
+      </tr>
+      <tr>
+        <td>Initial USDC Amount:</td><td><input onChange="reset()" id="initialUsdcAmount" value="147546"></td>
+      </tr>
+      <tr>
+        <td>Initial Token weight:</td><td><input onChange="reset()" id="initialTokenWeight" value="90"></td>
+      </tr>
+      <tr>
+        <td>Initial USDC weight:</td><td><input onChange="reset()" id="initialUsdcWeight" value="10"></td>
+      </tr>
+      <tr>
+        <td>End Token weight:</td><td><input onChange="reset()" id="endTokenWeight" value="30"></td>
+      </tr>
+      <tr>
+        <td>End USDC weight:</td><td><input onChange="reset()" id="endUsdcWeight" value="70"></td>
+      </tr>
+    </table>
+    <br>
+    <table>
+      <tr>
+        <td>Token Weight:</td><td><span id="tokenWeight"></span></td>
+      </tr>
+      <tr>
+        <td>USDC Weight: </td><td><span id="usdcWeight"></span></td>
+      </tr>
+      <tr>
+        <td>Token Amount: </td><td><span id="tokenAmount"></span></td>
+      </tr>
+      <tr>
+        <td>USDC Amount: </td><td><span id="usdcAmount"></span></td>
+      </tr>
+      <tr>
+        <td>Token Price: </td><td><span id="tokenPrice"></span></td>
+      </tr>
+    </table>
+    <br><br>
+    
+    <button onClick="startLbp()">Start LBP</button>
+    <button onClick="reset()">Reset</button>
+    <br><br>
+
+    <br>
+    <table>
+      <tr>
+        <td>USDC Spent:</td>
+        <td><span id="usdcSpent">0</span></td>
+      <tr>
+      </tr>
+        <td>Tokens Bought:</td>
+        <td><span id="tokensBought">0</span></td>
+      </tr>
+    </table>
+    <br>
+    <table>
+      <tr>
+        <td>Buy tokens for</td>
+        <td><button style="background: lime" onClick="buy(1000)">$1 000</button></td>
+        <td><button style="background: lime" onClick="buy(10000)">$10 000</button></td>
+        <td><button style="background: lime" onClick="buy(100000)">$100 000</button></td>
+      </tr>
+      <tr>
+        <td>Sell tokens</td>
+        <td><button style="background: red" onClick="sell(1000)">1 000</button></td>
+        <td><button style="background: red" onClick="sell(10000)">10 000</button></td>
+        <td><button style="background: red" onClick="sell(100000)">100 000</button></td>
+      </tr>
+      <tr>
+    </table>
+   
+    <br>
+    <table>
+      <tr>
+        <td>Graph price scale ($):</td><td><input onChange="reset()" id="maxGraphPrice" value="5"></td>
+      </tr>
+    </table>
+    <br>
+    <canvas id="myCanvas" width="1100" height="600" style="border:1px solid #000000;"/>
+
+  <script id="jsbin-javascript">
+    let canvas = document.getElementById("myCanvas");
+    let ctx = canvas.getContext("2d");
+
+    let initialTokenAmount;
+    let initialUsdcAmount;
+    let initialStartTokenWeight;
+    let initialStartUsdcWeight;
+    let initialEndTokenWeight;
+    let initialEndUsdcWeight;
+    let maxGraphPrice = 5;
+    let border = 50;
+    let dataHeight = canvas.height - 2*border;
+    let dataWidth = canvas.width - 2*border;
+
+    let tokenAmount
+    let usdcAmount
+    let startTime = 0; 
+    let lbpLength = 100000;
+    let endTime = 1;
+
+    let startTokenWeight = 0.9;
+    let startUsdcWeight = 0.1;
+
+    let endTokenWeight = 0.3;
+    let endUsdcWeight = 0.7;
+
+    let tokenWeight = startTokenWeight;
+    let usdcWeight = startUsdcWeight;
+
+
+    let usdcSpent = 0;
+    let tokensBought = 0;
+
+    function init() {
+      initialTokenAmount = parseInt(document.getElementById("initialTokenAmount").value);
+      initialUsdcAmount = parseInt(document.getElementById("initialUsdcAmount").value);
+      initialStartTokenWeight = parseInt(document.getElementById("initialTokenWeight").value)/100;
+      initialStartUsdcWeight = parseInt(document.getElementById("initialUsdcWeight").value)/100;
+      initialEndTokenWeight = parseInt(document.getElementById("endTokenWeight").value)/100;
+      initialEndUsdcWeight = parseInt(document.getElementById("endUsdcWeight").value)/100;
+      maxGraphPrice = parseInt(document.getElementById("maxGraphPrice").value);
+      tokenAmount = initialTokenAmount;
+      usdcAmount = initialUsdcAmount;
+      startTime = 0; 
+      endTime = 1;
+
+      startTokenWeight = initialStartTokenWeight;
+      startUsdcWeight = initialStartUsdcWeight;
+
+      endTokenWeight = initialEndTokenWeight;
+      endUsdcWeight = initialEndUsdcWeight;
+
+      tokenWeight = startTokenWeight;
+      usdcWeight = startUsdcWeight;
+
+      usdcSpent = 0;
+      tokensBought = 0;
+    }
+
+    function reset() {
+      init()
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      initDraw()
+    }
+
+    function startLbp() {
+      startTime = Date.now();
+      endTime = startTime + lbpLength;
+    }
+
+    function buy(amountIn) {
+      amountOut = tokenAmount*(1-Math.pow(usdcAmount/(usdcAmount+amountIn), usdcWeight/tokenWeight))
+      tokenAmount -= amountOut
+      usdcAmount += amountIn
+      usdcSpent += amountIn
+      tokensBought += amountOut
+    }
+
+    function sell(amountIn) {
+      amountOut = usdcAmount*(1-Math.pow(tokenAmount/(tokenAmount+amountIn), tokenWeight/usdcWeight))
+      usdcAmount -= amountOut
+      tokenAmount += amountIn
+      usdcSpent -= amountOut
+      tokensBought -= amountIn
+    }
+
+    function update() {
+      let time = Date.now();
+      let lbpProgress;
+      
+      if ((time > startTime) && (time < endTime)) {
+        lbpProgress = (time-startTime) / lbpLength;
+        tokenWeight = startTokenWeight + (endTokenWeight-startTokenWeight)*lbpProgress
+        usdcWeight = startUsdcWeight + (endUsdcWeight-startUsdcWeight)*lbpProgress
+      }
+
+      tokenPrice = (usdcAmount/usdcWeight) / (tokenAmount/tokenWeight)
+      drawTransaction(lbpProgress, tokenPrice)
+
+      tokenWeightText.innerHTML = tokenWeight.toFixed(2);
+      usdcWeightText.innerHTML = usdcWeight.toFixed(2);
+      tokenAmountText.innerHTML = tokenAmount.toFixed(0) + " TOKEN";
+      usdcAmountText.innerHTML = "$" + usdcAmount.toFixed(0);
+      tokenPriceText.innerHTML = "$" + tokenPrice.toFixed(2);
+      usdcSpentText.innerHTML = "$" + usdcSpent.toFixed(0);
+      tokensBoughtText.innerHTML = tokensBought.toFixed(0) + " TOKEN";
+    }
+
+    tokenWeightText = document.getElementById("tokenWeight");
+    usdcWeightText = document.getElementById("usdcWeight");
+    tokenAmountText = document.getElementById("tokenAmount");
+    usdcAmountText = document.getElementById("usdcAmount");
+    tokenPriceText = document.getElementById("tokenPrice");
+    usdcSpentText = document.getElementById("usdcSpent");
+    tokensBoughtText = document.getElementById("tokensBought");
+
+    function drawTransaction(lbpProgress, price) {
+      ctx.strokeStyle = "#348feb";
+      x = border + Math.round(dataWidth*lbpProgress);
+      y = canvas.height - border - Math.round(dataHeight*price/maxGraphPrice);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+
+    function initDraw() {
+      ctx.fillStyle = "gray";
+      ctx.font="10px Arial";
+      ctx.textAlign="left";
+      ctx.textBaseline = "middle";
+      for (price = 0; price<=maxGraphPrice; price += 1) {
+        ctx.fillText("$" + price.toFixed(2),15,canvas.height-border-(price*dataHeight/maxGraphPrice));
+      }
+      for (price = 0; price<=maxGraphPrice; price += 1) {
+        ctx.fillRect(border, canvas.height-border-(price*dataHeight/maxGraphPrice), dataWidth, 1);
+      }
+      for (price = 0; price<=maxGraphPrice; price += 0.25) {
+        ctx.fillStyle = "#88888822";
+        ctx.fillRect(border, canvas.height-border-(price*dataHeight/maxGraphPrice), dataWidth, 1);
+      }
+
+      ctx.beginPath();
+      price = (usdcAmount/usdcWeight) / (tokenAmount/tokenWeight);
+      ctx.moveTo(border, canvas.height - border - Math.round(dataHeight*price/maxGraphPrice));
+    }
+                    
+    init()
+    initDraw();
+                    
+    setInterval(update, 10)
+  </script>
+</body>
+</html>
