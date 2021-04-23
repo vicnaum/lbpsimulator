@@ -13,7 +13,7 @@ Released under the MIT license: http://jsbin.mit-license.org
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
-    <title>LBP Simulator - Interactive</title>
+    <title>LBP Simulator - 90s style</title>
   <style id="jsbin-css">
     table {
         border-collapse: collapse;
@@ -94,15 +94,15 @@ Released under the MIT license: http://jsbin.mit-license.org
     <table>
       <tr>
         <td>Buy tokens for</td>
-        <td><button style="background: lime" onClick="buy(1000)">$1 000</button></td>
-        <td><button style="background: lime" onClick="buy(10000)">$10 000</button></td>
-        <td><button style="background: lime" onClick="buy(100000)">$100 000</button></td>
+        <td><button class="buyButton" style="background: lime" onClick="buy(1000)">$1 000</button></td>
+        <td><button class="buyButton" style="background: lime" onClick="buy(10000)">$10 000</button></td>
+        <td><button class="buyButton" style="background: lime" onClick="buy(100000)">$100 000</button></td>
       </tr>
       <tr>
         <td>Sell tokens</td>
-        <td><button style="background: red" onClick="sell(1000)">1 000</button></td>
-        <td><button style="background: red" onClick="sell(10000)">10 000</button></td>
-        <td><button style="background: red" onClick="sell(100000)">100 000</button></td>
+        <td><button class="sellButton" style="background: red" onClick="sell(1000)">$1 000</button></td>
+        <td><button class="sellButton" style="background: red" onClick="sell(10000)">$10 000</button></td>
+        <td><button class="sellButton" style="background: red" onClick="sell(100000)">$100 000</button></td>
       </tr>
       <tr>
     </table>
@@ -150,7 +150,30 @@ Released under the MIT license: http://jsbin.mit-license.org
     let usdcSpent = 0;
     let tokensBought = 0;
 
+    function disableButtons() {
+      buyButtons = document.getElementsByClassName("buyButton")
+      for (buyButton of buyButtons) {
+        buyButton.disabled=true
+      }
+      sellButtons = document.getElementsByClassName("sellButton")
+      for (sellButton of sellButtons) {
+        sellButton.disabled=true
+      }
+    }
+
+    function enableButtons() {
+      buyButtons = document.getElementsByClassName("buyButton")
+      for (buyButton of buyButtons) {
+        buyButton.disabled=false
+      }
+      sellButtons = document.getElementsByClassName("sellButton")
+      for (sellButton of sellButtons) {
+        sellButton.disabled=false
+      }
+    }
+
     function init() {
+      disableButtons();
       initialTokenAmount = parseInt(document.getElementById("initialTokenAmount").value);
       initialUsdcAmount = parseInt(document.getElementById("initialUsdcAmount").value);
       initialStartTokenWeight = parseInt(document.getElementById("initialTokenWeight").value)/100;
@@ -185,10 +208,12 @@ Released under the MIT license: http://jsbin.mit-license.org
     function startLbp() {
       startTime = Date.now();
       endTime = startTime + lbpLength;
+      enableButtons();
     }
 
     function buy(amountIn) {
       amountOut = tokenAmount*(1-Math.pow(usdcAmount/(usdcAmount+amountIn), usdcWeight/tokenWeight))
+      if (tokenAmount-amountOut < 0) return;
       tokenAmount -= amountOut
       usdcAmount += amountIn
       usdcSpent += amountIn
@@ -197,6 +222,9 @@ Released under the MIT license: http://jsbin.mit-license.org
 
     function sell(amountIn) {
       amountOut = usdcAmount*(1-Math.pow(tokenAmount/(tokenAmount+amountIn), tokenWeight/usdcWeight))
+      if (usdcAmount-amountOut < 0) return;
+      if (usdcSpent-amountOut < 0) return;
+      if (tokensBought-amountIn < 0) return;
       usdcAmount -= amountOut
       tokenAmount += amountIn
       usdcSpent -= amountOut
