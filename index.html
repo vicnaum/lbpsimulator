@@ -3,7 +3,7 @@
 Created using JS Bin in half an hour
 http://jsbin.com
 
-My HTML skills are from 90s - so don't judge :-D
+Some of that good old beautiful 90s HTML here :-D
 
 Copyright (c) 2021 by vicnaum (http://jsbin.com/rerabu/4/edit)
 
@@ -34,7 +34,11 @@ Released under the MIT license: http://jsbin.mit-license.org
 </head>
   <body>
     <h1>LBP Simulator</h1>
-
+    Disclaimer: This simulator mimics the Balancer Configurable Smart Pool behaviour with gradual weights change.
+    <br>
+    It doesn't account for swap fees and is made for fun to show the general concept of how LBPs work.
+    <br>
+    <br>
     <table>
       <tr>
         <td>Initial Token Amount:</td><td><input onChange="reset()" id="initialTokenAmount" value="1775000"></td>
@@ -56,28 +60,17 @@ Released under the MIT license: http://jsbin.mit-license.org
       </tr>
     </table>
     <br>
+    
     <table>
       <tr>
-        <td>Token Weight:</td><td><span id="tokenWeight"></span></td>
-      </tr>
-      <tr>
-        <td>USDC Weight: </td><td><span id="usdcWeight"></span></td>
-      </tr>
-      <tr>
-        <td>Token Amount: </td><td><span id="tokenAmount"></span></td>
-      </tr>
-      <tr>
-        <td>USDC Amount: </td><td><span id="usdcAmount"></span></td>
-      </tr>
-      <tr>
-        <td>Token Price: </td><td><span id="tokenPrice"></span></td>
+        <td>Graph price scale ($):</td><td><input onChange="reset()" id="maxGraphPrice" value="2"></td>
       </tr>
     </table>
     <br><br>
-    
     <button onClick="startLbp()">Start LBP</button>
     <button onClick="reset()">Reset</button>
     <br><br>
+    <canvas id="myCanvas" width="1100" height="600" style="border:1px solid #000000;"></canvas>
 
     <br>
     <table>
@@ -106,16 +99,31 @@ Released under the MIT license: http://jsbin.mit-license.org
       </tr>
       <tr>
     </table>
-   
-    <br>
-    <table>
-      <tr>
-        <td>Graph price scale ($):</td><td><input onChange="reset()" id="maxGraphPrice" value="5"></td>
-      </tr>
-    </table>
-    <br>
-    <canvas id="myCanvas" width="1100" height="600" style="border:1px solid #000000;"/>
-
+   <br>
+   <table>
+    <tr>
+      <td>Token Weight:</td><td><span id="tokenWeight"></span></td>
+    </tr>
+    <tr>
+      <td>USDC Weight: </td><td><span id="usdcWeight"></span></td>
+    </tr>
+    <tr>
+      <td>Token Amount: </td><td><span id="tokenAmount"></span></td>
+    </tr>
+    <tr>
+      <td>USDC Amount: </td><td><span id="usdcAmount"></span></td>
+    </tr>
+    <tr>
+      <td>Token Price: </td><td><span id="tokenPrice"></span></td>
+    </tr>
+  </table>
+  <br><br>
+  <br>
+  <br>
+  <hr>
+  <center>P.S. If you want to create your own token with a <blink>really low gas</blink> - try <a href="https://coinstructor.io" target="_blank">coinstructor.io</a></center>
+  <hr>
+  <center>(c) 2021. Hosted by Geocities (kinda)</center>
   <script id="jsbin-javascript">
     let canvas = document.getElementById("myCanvas");
     let ctx = canvas.getContext("2d");
@@ -294,6 +302,23 @@ Released under the MIT license: http://jsbin.mit-license.org
     initDraw();
                     
     setInterval(update, 10)
+  </script>
+  <script type="text/javascript">
+    colors = ["maroon", "red", "purple", "fushsia", "green", "lime", "olive", "yellow", "navy", "blue", "teal", "aqua"];
+    function changeColor(element) {
+      element.style.color = colors[Math.floor(Math.random() * colors.length)]
+    };
+    (function() {
+      var blinks = document.getElementsByTagName('blink');
+      var visibility = 'hidden';
+      window.setInterval(function() {
+        for (var i = blinks.length - 1; i >= 0; i--) {
+          blinks[i].style.visibility = visibility;
+          changeColor(blinks[i]);
+        }
+        visibility = (visibility === 'visible') ? 'hidden' : 'visible';
+      }, 250);
+    })();
   </script>
 </body>
 </html>
